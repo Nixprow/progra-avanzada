@@ -1,10 +1,12 @@
+import random
+
 class Bacteria ():
     def __init__ (self):
         self.__id= None #String
         self.__raza= None #String
         self.__energia= 0 #Entero
-        self.__resistente= None #Booleano que luego cumplirá con ser true or false
-        self.__estado= None #Booleano que determina el estado de vida de la bacteria
+        self.__resistente= False #Booleano que luego cumplirá con ser true or false
+        self.__estado= True #Booleano que determina el estado de vida de la bacteria siendo "True"= vivo y "False" = muerto
     #Funciones para trabajar con el id o "Nombre" de la bacteria
     def get_id(self):
         return self.__id
@@ -69,7 +71,41 @@ class Bacteria ():
             self.__estado= vivo
         else:
             raise TypeError("El tipo de dato no corresponde a un booleano")
-        
+    #Metodos 
+    def alimentar(self,cantidad):
+        if self.__estado:
+            if isinstance(cantidad, int) and cantidad > 0: #Aqui se analiza primero, que cantidad sea entero y luego que la cantidad sea mayor a 0 para alimentar a la bacter
+                self.__energia += cantidad
+            else: 
+                print("Cantidad insuficiente de nutrientes") #En caso de que no sea mayor a 0 arrojará que hay una cantidad insuficiente de nutrientes
+    
+    
+    def dividirse(self):
+        if self.__estado and self.__energia >= 80:
+            hija=Bacteria()
+            hija.set_id(self.__id + "_hija")
+            hija.set_raza(self.__raza)
+            hija.set_energia(self.__energia // 2)
+            hija.set_resistente(self.__resistente)
+            hija.set_estado(True)
+            self.__energia //= 2   
+            
+            # Para que tenga un poco más de aletoreidad haremos que exista una probabilidad de que una mitosis nazca una bacteria con mutacion y su prob será de (5%)
+            if random.random() < 0.05:
+                hija.mutar()
+            return hija
+        return None #Se retorna a nada por que ya se hizo la division celular 
+    def mutar(self):
+        if self.__estado:
+            self.__resistente = True #Aqui se hace cambio del estado resistente original de la bacteria que se encontraba en falso por True para que la bacteria pueda presentar una resistencia a los antibioticos o tal vez a otros factores
+            print(f"{self.__id} mutó y ahora es resistente")
+    
+    def morir(self):
+        if self.__estado:
+            self.__estado = False # Se hace cambio de self.estado, pasa de True (vivo) a False (Muerto)
+            self.__energia = 0
+            print (f"{self.__id} ha muerto :c ") 
+    
                 
             
                 
