@@ -1,83 +1,80 @@
-import numpy as np
 import random
 
-class Ambiente():
-    #Se definen atributos del ambiente
-    def __init__(self, filas=10, columnas=10):
+class Ambiente:
+    def __init__(self, filas=10, columnas=10, nutrientes_iniciales=50, prob_antibiotico=0.1):
         self.__filas = filas
         self.__columnas = columnas
-        self.__nutrientes = np.random.randint(15,30, size=(filas,columnas))
-        self.__antibiotico = np.zeros((filas,columnas), dtype=bool) #Dtype siendo un booleano, devuelve el tipo de datos de los elementos de la matriz, y siendo "False=No hay antibiotico"
-        self.__factor_ambiental = "normal" #Es algo temporal, ya que despues se puede cambiar
-        
+
+        # Grilla lógica numérica: 0 = vacío, 1 = activa, 2 = muerta, 3 = resistente, 4 = biofilm
+        self.__grilla = [[0 for _ in range(columnas)] for _ in range(filas)]
+
+        # Nutrientes por celda
+        self.__nutrientes = [[nutrientes_iniciales for _ in range(columnas)] for _ in range(filas)]
+
+        # Antibióticos (True si hay antibiótico en la celda)
+        self.__factor_ambiental = [[random.random() < prob_antibiotico for _ in range(columnas)] for _ in range(filas)]
+
+    # --- Métodos para acceder y modificar la grilla ---
+    def get_grilla(self):
+        return self.__grilla
+
+    def set_grilla_valor(self, i, j, valor):
+        if 0 <= i < self.__filas and 0 <= j < self.__columnas:
+            self.__grilla[i][j] = valor
+
+    # --- Nutrientes ---
     def get_nutrientes(self):
-        return self.__nutrientes.copy() #El .copy() se encarga de crear una copia independiente del arreglo numpy, con fin de mantener encapsulamiento
-    
-    def set_nutrientes(self,x,y,cantidad):
-        if isinstance(cantidad,int) and cantidad >= 0: # Se verifica que la cantidad de nutrientes disponibles en el ambiente y que la cantidad tiene que ser mayor que 0
-            self.__nutrientes[x,y] = cantidad # Se trabaja con el [x,y], ya que actualmente se está trabajando con una array o matriz
-        else:
-            raise ValueError("La cantidad debe ser un entero positivo")
-        
-        
-    def get_antibiotico(self):
-        return self.__antibiotico.copy()
-    
-    def get_dimensiones(self):
-        return (self.__filas, self.__columnas) #Getter con el fin de facilitar el uso de las dimensiones de la matriz
-    
-    def hay_antibiotico_en(self, x,y): #  El "en" alfinal de los getters sirven para distinguir la cantidad disponible de antibiotico en el ambiente
-        return self.__antibiotico[x,y]
-    
-    def nutrientes_en (self,x,y): #  El "en" alfinal de los getters sirven para distinguir la cantidad disponible de nutrientes en el ambiente
-        return self.__nutrientes[x,y]
-    
-    #(Recordatorio: Profesor o Ayudante ignore esto)
-    #(Columnas,verticales ,eje y)
-    #(Filas, horizontales, eje x)
-    def aplicar_antibiotico(self, x,y): #Equivalente a aplicar_ambiente que solicita la guia
-        if 0 <= x < self.__filas and 0 <= y < self.__columnas:
-            self.__antibiotico [x,y]= True
-            
-    def eliminar_antibiotico(self, x,y):
-        if 0 <= x < self.__filas and 0 <= y < self.__columnas:
-            self.__antibiotico [x,y]= False
-    
-    def difundir_nutrientes(self):
-        new= self.__nutrientes.copy()
+        return self.__nutrientes
+
+    def actualizar_nutrientes(self, matriz_consumo):
+        """
+        Descuenta los nutrientes según el consumo por celda.
+        """
         for i in range(self.__filas):
-            for j in range (self.__columnas):
-                vecinos = self.__obtener_vecinos(i,j)
-                promedio = sum(self.__nutrientes[x,y] for x,y in vecinos) // len(vecinos)
-                new[i,j]= (self.__nutrientes[i,j] + promedio) // 2
-        self.__nutrientes= new
-        
-    def __obtener_vecinos(self,x,y):
-        vecinos= [] #Se crea lista vacia para almacenar
-        for dx in [-1,0,1]:
-            for dy in [-1,0,1]: # Se hace el analisis dentro de la matriz como tal viendo los vecinos 
-                if (dx != 0 or dy != 0): # Se busca que el valor de la posicion sea distinto del que se está analizando ej: distinto de [1,1]
-                    nx= x + dx
-                    ny = y + dy
-                if 0<= nx < self.__filas and 0<= ny < self.__columnas:
-                    vecinos.append ((nx,ny))
-        return vecinos
-    
-    def consumir_nutrientes(self,x,y):
-        if 0<= x < self.__filas and 0<= y < self.__columnas:
-            cantidad = random.randint(15,25)
-            disponible = self.__nutrientes[x,y]
-            consumido = min(disponible, cantidad) #Busca la cantidad minima entre cantidad y disponible, ya que min() busca la cantidad minima de una lista o tupla
-            self.__nutrientes[x,y] -= consumido
-            return consumido
-        return 0
-    
-    
-    def mostrar_nutrientes(self):
-        print("Matriz de nutrientes: \n", self.__nutrientes) #Muestra la matriz asociada a los nutrientes en el ambiente
-    
-    def mostrar_antibiotico(self):
-        print("Matriz de antibioticos: \n", self.__antibiotico.astype(int)) #Muestra la matriz asociada a los antibioticos del ambiente :D 
-        
-        
-        
+            for j in range(self.__columnas):
+                consumo = matriz_consumo[i][j]
+                if isinstance(consumo, int) and consumo > 0:
+                    self.__nutrientes[i][j] = max(0, self.__nutrientes[i][j] - consumo)
+
+    def difundir_nutrientes(self):
+        """
+        Difunde los nutrientes con vecinos directos (arriba, abajo, izquierda, derecha).
+        """
+        nueva = [[0 for _ in range(self.__columnas)] for _ in range(self.__filas)]
+
+        for i in range(self.__filas):
+            for j in range(self.__columnas):
+                suma = self.__nutrientes[i][j]
+                contador = 1
+
+                if i > 0:
+                    suma += self.__nutrientes[i-1][j]
+                    contador += 1
+                if i < self.__filas - 1:
+                    suma += self.__nutrientes[i+1][j]
+                    contador += 1
+                if j > 0:
+                    suma += self.__nutrientes[i][j-1]
+                    contador += 1
+                if j < self.__columnas - 1:
+                    suma += self.__nutrientes[i][j+1]
+                    contador += 1
+
+                nueva[i][j] = suma // contador
+
+        self.__nutrientes = nueva
+
+    # --- Antibióticos ---
+    def get_factor_ambiental(self):
+        return self.__factor_ambiental
+
+    def aplicar_ambiente(self, i, j, bacteria):
+        """
+        Aplica el efecto del antibiótico si la bacteria no es resistente.
+        """
+        if self.__factor_ambiental[i][j]:
+            if not bacteria.es_resistente():
+                if random.random() > 0.15:
+                    bacteria.morir()
+                else:
+                    print(f"{bacteria.get_id()} sobrevivió al antibiótico en ({i}, {j})")
