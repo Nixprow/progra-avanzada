@@ -115,6 +115,6 @@ class Colonia:
                     b.get_id(),
                     b.get_raza(),
                     b.get_energia(),
-                    b.es_resistente(),
-                    "Viva" if b.esta_vivo() else "Muerta"
+                    "Viva" if b.esta_vivo() else "Muerta",
+                    "Si" if b.es_resistente() else "No"
                 ])

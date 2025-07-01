@@ -60,7 +60,7 @@ class MainSimulador(Gtk.Application):
 
     def on_graficar(self, action, param):
         print("[MENU] Graficar resultados seleccionado")
-
+    #Sirve para testear si funciona el Boton XDD
     def on_siguiente_paso(self, button):
         print("[BOTON] Siguiente paso de simulación ejecutado")
         self.etiqueta_estado.set_text("Simulación: siguiente paso ejecutado")
