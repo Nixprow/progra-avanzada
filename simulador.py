@@ -11,6 +11,12 @@ from colonia import Colonia
 from bacteria import Bacteria
 
 class SimuladorWindow(Gtk.ApplicationWindow):
+    def do_close_request(self):
+        # Cierra la aplicación completamente al cerrar la ventana
+        app = self.get_application()
+        if app:
+            app.quit()
+        return False
     def __init__(self, app):
         super().__init__(application=app)
         self.set_title("Simulador Bacteriano")
@@ -89,16 +95,44 @@ class SimuladorWindow(Gtk.ApplicationWindow):
                 file = dialog_ref.open_finish(result)
                 if file:
                     path = file.get_path()
+                    # Lógica de importación aquí directamente
+                    import pandas as pd
                     self.colonia = Colonia(filas=10, columnas=10)
-                    ok = self.colonia.importar_csv(path)
-                    if ok:
-                        self.pasos_realizados = 0
-                        self.pasos_maximos = 0
-                        self.boton_siguiente.set_sensitive(True)
-                        self.canvas.set_visible(True)
-                        self.actualizar_grilla()
-                    else:
-                        self.mostrar_mensaje("Error al importar el archivo CSV.")
+                    try:
+                        df = pd.read_csv(path, encoding='utf-8')
+                    except UnicodeDecodeError:
+                        df = pd.read_csv(path, encoding='latin-1')
+                    except Exception as e:
+                        self.mostrar_mensaje(f"Error al leer el CSV: {e}")
+                        return
+                    columnas = [c.strip().lower() for c in df.columns]
+                    df.columns = columnas
+                    self.colonia.get_bacterias().clear()
+                    for i, row in df.iterrows():
+                        b = Bacteria()
+                        b.set_id(str(row.get('id', f"B{i}")))
+                        b.set_raza(str(row.get('raza', 'Desconocida')))
+                        try:
+                            b.set_energia(int(row.get('energía', 90)))
+                        except Exception:
+                            b.set_energia(90)
+                        b.set_estado(str(row.get('estado', 'Viva')).strip().lower() == 'viva')
+                        b.set_resistente(str(row.get('resistente', 'No')).strip().lower() == 'si')
+                        # Buscar la primera celda vacía
+                        añadido = False
+                        for x in range(self.colonia.get_ambiente().get_grilla().__len__()):
+                            for y in range(self.colonia.get_ambiente().get_grilla()[0].__len__()):
+                                if self.colonia.get_ambiente().get_grilla()[x][y] == 0:
+                                    self.colonia.agregar_bacteria(b, x, y)
+                                    añadido = True
+                                    break
+                            if añadido:
+                                break
+                    self.pasos_realizados = 0
+                    self.pasos_maximos = 0
+                    self.boton_siguiente.set_sensitive(True)
+                    self.canvas.set_visible(True)
+                    self.actualizar_grilla()
             except Exception as e:
                 self.mostrar_mensaje(f"Error al abrir archivo: {e}")
 
@@ -160,9 +194,6 @@ class SimuladorWindow(Gtk.ApplicationWindow):
         pasos = list(range(1, len(self.historial_resistentes)+1))
         fig, ax = plt.subplots()
         ax.plot(pasos, self.historial_resistentes, label="Resistentes (en simulación)")
-        if "Resistente" in df.columns:
-            resistentes_csv = (df["Resistente"] == "Si").sum()
-            ax.axhline(resistentes_csv, color='red', linestyle='--', label="Resistentes (CSV último estado)")
         ax.set_xlabel("Paso")
         ax.set_ylabel("Cantidad de bacterias resistentes")
         ax.set_title("Evolución de bacterias resistentes")
@@ -179,9 +210,6 @@ class SimuladorWindow(Gtk.ApplicationWindow):
         pasos = list(range(1, len(self.historial_vivas)+1))
         fig, ax = plt.subplots()
         ax.plot(pasos, self.historial_vivas, label="Vivas (en simulación)")
-        if "Estado" in df.columns:
-            vivas_csv = (df["Estado"] == "Viva").sum()
-            ax.axhline(vivas_csv, color='green', linestyle='--', label="Vivas (CSV último estado)")
         ax.set_xlabel("Paso")
         ax.set_ylabel("Cantidad de bacterias vivas")
         ax.set_title("Crecimiento de la colonia bacteriana")
@@ -189,9 +217,12 @@ class SimuladorWindow(Gtk.ApplicationWindow):
         self.mostrar_grafico_en_ventana(fig, "Crecimiento")
 
     def mostrar_mensaje(self, texto):
-        dialog = Gtk.MessageDialog(parent=self, message_type=Gtk.MessageType.INFO, buttons=Gtk.ButtonsType.OK, text=texto)
-        dialog.run()
-        dialog.destroy()
+        dialog = Gtk.MessageDialog(text=texto, message_type=Gtk.MessageType.INFO, buttons=Gtk.ButtonsType.OK)
+        dialog.set_transient_for(self)
+        def on_response(dialog_ref, response):
+            dialog_ref.destroy()
+        dialog.connect("response", on_response)
+        dialog.show()
 
     def on_iniciar_simulacion(self, button):
         try:
@@ -291,6 +322,11 @@ class SimuladorApp(Gtk.Application):
     def do_activate(self):
         win = SimuladorWindow(self)
         win.present()
+
+    def do_window_removed(self, window):
+        # Si no quedan ventanas, salir de la app
+        if not self.get_windows():
+            self.quit()
 
 if __name__ == "__main__":
     app = SimuladorApp()
