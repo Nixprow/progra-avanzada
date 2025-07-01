@@ -2,6 +2,8 @@ from bacteria import Bacteria
 from ambiente import Ambiente
 import random
 import csv
+import pandas as pd
+
 
 class Colonia:
     def __init__(self, filas=10, columnas=10):
@@ -102,19 +104,18 @@ class Colonia:
                 muertas += 1
 
         print(f"[REPORTE] Vivas: {vivas} | Muertas: {muertas} | Resistentes: {resistentes}")
-
+    # El método importar_csv ha sido eliminado. Ahora la lógica de importación se maneja en simulador.py
     def exportar_csv(self, nombre="colonia_estado.csv"):
-        
-        #Exporta el estado de las bacterias a un archivo.csv llamado = colonia_estado.csv
-        
-        with open(nombre, mode="w", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(["ID", "Raza", "Energía", "Resistente", "Estado"])
-            for b, _, _ in self.__bacterias:
-                writer.writerow([
-                    b.get_id(),
-                    b.get_raza(),
-                    b.get_energia(),
-                    "Viva" if b.esta_vivo() else "Muerta",
-                    "Si" if b.es_resistente() else "No"
-                ])
+        # Exporta el estado de las bacterias a un archivo.csv usando pandas
+        import pandas as pd
+        data = []
+        for b, _, _ in self.__bacterias:
+            data.append({
+                "ID": b.get_id(),
+                "Raza": b.get_raza(),
+                "Energía": b.get_energia(),
+                "Estado": "Viva" if b.esta_vivo() else "Muerta",
+                "Resistente": "Si" if b.es_resistente() else "No"
+            })
+        df = pd.DataFrame(data)
+        df.to_csv(nombre, index=False, encoding="utf-8")
