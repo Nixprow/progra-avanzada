@@ -22,7 +22,8 @@ class Colonia:
         """
         if self.__ambiente.get_grilla()[fila][columna] == 0:
             self.__bacterias.append((bacteria, fila, columna))
-            self.__ambiente.set_grilla_valor(fila, columna, 1)
+            valor = 3 if bacteria.es_resistente() else 1
+            self.__ambiente.set_grilla_valor(fila, columna, valor)
 
     def paso(self):
         """
@@ -38,7 +39,7 @@ class Colonia:
                 continue
 
             # Alimentar con cantidad aleatoria
-            cantidad = random.randint(15, 25)
+            cantidad = random.randint(15, 50)
             bacteria.alimentar(cantidad)
             matriz_consumo[i][j] = cantidad
 
@@ -50,22 +51,30 @@ class Colonia:
                 self.__ambiente.set_grilla_valor(i, j, 2)
                 continue
 
+            # Si está viva y resistente, aseguramos marcarla como 3
+            if bacteria.es_resistente():
+                self.__ambiente.set_grilla_valor(i, j, 3)
+
             # Intentar dividir
             if bacteria.get_energia() >= 80:
                 hija = bacteria.dividirse()
                 if hija is not None:
-                    # Vecinos cardinales simples
+                    # Posibilidad de mutar (5%)
+                    if random.random() < 0.05:
+                        hija.mutar()
+
+                    # Buscar vecinos cardinales simples
                     if i > 0 and self.__ambiente.get_grilla()[i-1][j] == 0:
-                        self.__ambiente.set_grilla_valor(i-1, j, 1)
+                        self.__ambiente.set_grilla_valor(i-1, j, 3 if hija.es_resistente() else 1)
                         nuevas_bacterias.append((hija, i-1, j))
                     elif i < self.__filas - 1 and self.__ambiente.get_grilla()[i+1][j] == 0:
-                        self.__ambiente.set_grilla_valor(i+1, j, 1)
+                        self.__ambiente.set_grilla_valor(i+1, j, 3 if hija.es_resistente() else 1)
                         nuevas_bacterias.append((hija, i+1, j))
                     elif j > 0 and self.__ambiente.get_grilla()[i][j-1] == 0:
-                        self.__ambiente.set_grilla_valor(i, j-1, 1)
+                        self.__ambiente.set_grilla_valor(i, j-1, 3 if hija.es_resistente() else 1)
                         nuevas_bacterias.append((hija, i, j-1))
                     elif j < self.__columnas - 1 and self.__ambiente.get_grilla()[i][j+1] == 0:
-                        self.__ambiente.set_grilla_valor(i, j+1, 1)
+                        self.__ambiente.set_grilla_valor(i, j+1, 3 if hija.es_resistente() else 1)
                         nuevas_bacterias.append((hija, i, j+1))
 
         # Actualizar ambiente
