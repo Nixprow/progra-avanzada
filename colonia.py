@@ -8,7 +8,7 @@ class Colonia:
         self.__filas = filas
         self.__columnas = columnas
         self.__ambiente = Ambiente(filas, columnas)
-        self.__bacterias = []  # Lista de bacterias activas
+        self.__bacterias = []  # Lista de bacterias 
 
     def get_bacterias(self):
         return self.__bacterias
@@ -17,23 +17,24 @@ class Colonia:
         return self.__ambiente
 
     def agregar_bacteria(self, bacteria, fila, columna):
-        """
-        Agrega una bacteria a la colonia y la ubica en el ambiente si la celda está vacía.
-        """
+        
+        #Agrega una bacteria a la colonia y la ubica en el ambiente si la celda está vacía.
+        
         if self.__ambiente.get_grilla()[fila][columna] == 0:
             self.__bacterias.append((bacteria, fila, columna))
             valor = 3 if bacteria.es_resistente() else 1
             self.__ambiente.set_grilla_valor(fila, columna, valor)
+            #Ejemplo self.__ambiente.get_grilla()= 1,2,0 segun si esta vacio el espacio, esta viva, o muerta la bacteria
 
     def paso(self):
-        """
-        Ejecuta un paso de simulación: alimentar, aplicar ambiente, dividir, morir, difundir.
-        """
+        
+        #Ejecuta un paso de simulación: alimentar, aplicar ambiente, dividir, morir, difundir.
+        
         nuevas_bacterias = []
         matriz_consumo = [[0 for _ in range(self.__columnas)] for _ in range(self.__filas)]
 
         for b in self.__bacterias:
-            bacteria, i, j = b
+            bacteria, x, y = b
 
             if not bacteria.esta_vivo():
                 continue
@@ -41,19 +42,19 @@ class Colonia:
             # Alimentar con cantidad aleatoria
             cantidad = random.randint(15, 50)
             bacteria.alimentar(cantidad)
-            matriz_consumo[i][j] = cantidad
+            matriz_consumo[x][y] = cantidad
 
             # Aplicar antibiótico si corresponde
-            self.__ambiente.aplicar_ambiente(i, j, bacteria)
+            self.__ambiente.aplicar_ambiente(x, y, bacteria)
 
-            # Si muere, marcar en la grilla
+            # Si muere, se le asigna el valor de 2
             if not bacteria.esta_vivo():
-                self.__ambiente.set_grilla_valor(i, j, 2)
+                self.__ambiente.set_grilla_valor(x,y, 2)
                 continue
 
-            # Si está viva y resistente, aseguramos marcarla como 3
+            # Si está viva y resistente, se le asigna el valor de 3
             if bacteria.es_resistente():
-                self.__ambiente.set_grilla_valor(i, j, 3)
+                self.__ambiente.set_grilla_valor(x, y, 3)
 
             # Intentar dividir
             if bacteria.get_energia() >= 80:
@@ -63,19 +64,19 @@ class Colonia:
                     if random.random() < 0.05:
                         hija.mutar()
 
-                    # Buscar vecinos cardinales simples
-                    if i > 0 and self.__ambiente.get_grilla()[i-1][j] == 0:
-                        self.__ambiente.set_grilla_valor(i-1, j, 3 if hija.es_resistente() else 1)
-                        nuevas_bacterias.append((hija, i-1, j))
-                    elif i < self.__filas - 1 and self.__ambiente.get_grilla()[i+1][j] == 0:
-                        self.__ambiente.set_grilla_valor(i+1, j, 3 if hija.es_resistente() else 1)
-                        nuevas_bacterias.append((hija, i+1, j))
-                    elif j > 0 and self.__ambiente.get_grilla()[i][j-1] == 0:
-                        self.__ambiente.set_grilla_valor(i, j-1, 3 if hija.es_resistente() else 1)
-                        nuevas_bacterias.append((hija, i, j-1))
-                    elif j < self.__columnas - 1 and self.__ambiente.get_grilla()[i][j+1] == 0:
-                        self.__ambiente.set_grilla_valor(i, j+1, 3 if hija.es_resistente() else 1)
-                        nuevas_bacterias.append((hija, i, j+1))
+                    # Buscar vecinos cardinales simples (ya que la otra funcion no funcionaba .-.)
+                    if x > 0 and self.__ambiente.get_grilla()[x-1][y] == 0:
+                        self.__ambiente.set_grilla_valor(x-1, y, 3 if hija.es_resistente() else 1)
+                        nuevas_bacterias.append((hija, x-1, y))
+                    elif x < self.__filas - 1 and self.__ambiente.get_grilla()[x+1][y] == 0:
+                        self.__ambiente.set_grilla_valor(x+1, y, 3 if hija.es_resistente() else 1)
+                        nuevas_bacterias.append((hija, x+1, y))
+                    elif y > 0 and self.__ambiente.get_grilla()[x][y-1] == 0:
+                        self.__ambiente.set_grilla_valor(x, y-1, 3 if hija.es_resistente() else 1)
+                        nuevas_bacterias.append((hija, x, y-1))
+                    elif y < self.__columnas - 1 and self.__ambiente.get_grilla()[x][y+1] == 0:
+                        self.__ambiente.set_grilla_valor(x, y+1, 3 if hija.es_resistente() else 1)
+                        nuevas_bacterias.append((hija, x, y+1))
 
         # Actualizar ambiente
         self.__ambiente.actualizar_nutrientes(matriz_consumo)
@@ -85,9 +86,9 @@ class Colonia:
         self.__bacterias.extend(nuevas_bacterias)
 
     def reporte_estado(self):
-        """
-        Muestra el estado general de la colonia.
-        """
+        
+        #Muestra el estado general de la colonia.
+        #Se determinan variables para almacenar la informacion sobre bacterias, vivas, muertas o resistentes
         vivas = 0
         muertas = 0
         resistentes = 0
@@ -103,9 +104,9 @@ class Colonia:
         print(f"[REPORTE] Vivas: {vivas} | Muertas: {muertas} | Resistentes: {resistentes}")
 
     def exportar_csv(self, nombre="colonia_estado.csv"):
-        """
-        Exporta el estado de las bacterias a un archivo CSV.
-        """
+        
+        #Exporta el estado de las bacterias a un archivo.csv llamado = colonia_estado.csv
+        
         with open(nombre, mode="w", newline="") as f:
             writer = csv.writer(f)
             writer.writerow(["ID", "Raza", "Energía", "Resistente", "Estado"])
