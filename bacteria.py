@@ -2,9 +2,9 @@ import random
 
 class Bacteria ():
     def __init__ (self):
-        self.__id= None #String
-        self.__raza= None #String
-        self.__energia= 0 #Entero
+        self.__id= f"A{random.randint(1000,5000)}" #String
+        self.__raza= random.choice(["Espiroquetas","Estreptococos"]) #String
+        self.__energia= 90 #Entero
         self.__resistente= False #Booleano que luego cumplirá con ser true or false
         self.__estado= True #Booleano que determina el estado de vida de la bacteria siendo "True"= vivo y "False" = muerto
     #Funciones para trabajar con el id o "Nombre" de la bacteria
@@ -99,7 +99,7 @@ class Bacteria ():
         if self.__estado:
             self.__resistente = True #Aqui se hace cambio del estado resistente original de la bacteria que se encontraba en falso por True para que la bacteria pueda presentar una resistencia a los antibioticos o tal vez a otros factores
             print(f"{self.__id} mutó y ahora es resistente")
-    
+    #(Nota, añadir funcion para que mueran con baja energia)
     def morir(self):
         if self.__estado:
             self.__estado = False # Se hace cambio de self.estado, pasa de True (vivo) a False (Muerto)
