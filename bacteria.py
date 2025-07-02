@@ -4,7 +4,7 @@ class Bacteria ():
     def __init__ (self):
         self.__id= f"A{random.randint(1000,5000)}" #String random
         self.__raza= random.choice(["Espiroquetas","Estreptococos"]) #String random
-        self.__energia= 90 #Entero
+        self.__energia= 50 #Entero
         self.__resistente= False #Booleano que luego cumplirá con ser true or false
         self.__estado= True #Booleano que determina el estado de vida de la bacteria siendo "True"= vivo y "False" = muerto
     #Funciones para trabajar con el id o "Nombre" de la bacteria

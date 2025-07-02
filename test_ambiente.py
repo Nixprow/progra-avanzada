@@ -18,10 +18,10 @@ mostrar_matriz(amb.get_nutrientes(), "Nutrientes luego de consumo")
 
 # Difundir nutrientes
 amb.difundir_nutrientes()
-mostrar_matriz(amb.get_nutrientes(), "Nutrientes luego de difusión")
+mostrar_matriz(amb.get_nutrientes(), "Nutrientes")
 
 # Mostrar presencia de antibióticos
-mostrar_matriz(amb.get_factor_ambiental(), "Mapa de antibióticos (True = presente)")
+mostrar_matriz(amb.get_factor_ambiental(), "Mapa de antibióticos")
 
 # Mostrar grilla inicial (vacía, con ceros)
 mostrar_matriz(amb.get_grilla(), "Grilla inicial (numérica)")

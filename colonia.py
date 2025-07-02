@@ -10,7 +10,7 @@ class Colonia:
         self.__filas = filas
         self.__columnas = columnas
         self.__ambiente = Ambiente(filas, columnas)
-        self.__bacterias = []  # Lista de bacterias 
+        self.__bacterias = []
 
     def get_bacterias(self):
         return self.__bacterias
@@ -88,13 +88,10 @@ class Colonia:
         self.__bacterias.extend(nuevas_bacterias)
 
     def reporte_estado(self):
-        
-        #Muestra el estado general de la colonia.
-        #Se determinan variables para almacenar la informacion sobre bacterias, vivas, muertas o resistentes
+        # Muestra el estado general de la colonia y retorna los valores
         vivas = 0
         muertas = 0
         resistentes = 0
-
         for b, _, _ in self.__bacterias:
             if b.esta_vivo():
                 vivas += 1
@@ -102,20 +99,15 @@ class Colonia:
                     resistentes += 1
             else:
                 muertas += 1
-
         print(f"[REPORTE] Vivas: {vivas} | Muertas: {muertas} | Resistentes: {resistentes}")
-    # El método importar_csv ha sido eliminado. Ahora la lógica de importación se maneja en simulador.py
+        return vivas, muertas, resistentes
+    
     def exportar_csv(self, nombre="colonia_estado.csv"):
-        # Exporta el estado de las bacterias a un archivo.csv usando pandas
-        import pandas as pd
-        data = []
-        for b, _, _ in self.__bacterias:
-            data.append({
-                "ID": b.get_id(),
-                "Raza": b.get_raza(),
-                "Energía": b.get_energia(),
-                "Estado": "Viva" if b.esta_vivo() else "Muerta",
-                "Resistente": "Si" if b.es_resistente() else "No"
-            })
-        df = pd.DataFrame(data)
-        df.to_csv(nombre, index=False, encoding="utf-8")
+        data = [{
+            "ID": b.get_id(),
+            "Raza": b.get_raza(),
+            "Energía": b.get_energia(),
+            "Estado": "Viva" if b.esta_vivo() else "Muerta",
+            "Resistente": "Si" if b.es_resistente() else "No"
+        } for b, _, _ in self.__bacterias]
+        pd.DataFrame(data).to_csv(nombre, index=False, encoding="utf-8")
