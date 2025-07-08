@@ -1,7 +1,6 @@
-from bacteria import Bacteria, Espiroqueta, Estreptococo  # <--- Interacción: colonia.py importa bacteria.py aquí
-from ambiente import Ambiente  # <--- Interacción: colonia.py importa ambiente.py aquí
+from bacteria import Espiroqueta, Estreptococo  #colonia.py importa Espiroqueta y Estreptococo, las cuales son bacterias hijas de Bacteria
+from ambiente import Ambiente  # colonia.py importa ambiente.py aquí
 import random
-import csv
 import pandas as pd
 
 #Hacer uso del import de bacteria y usarlo
@@ -13,16 +12,16 @@ class Colonia():
         self.__bacterias = []  # Interacción: Colonia mantiene la lista de bacterias
 
     def get_bacterias(self):
-        # Interacción: Usado por SimuladorWindow y para importar/exportar bacterias
+        #Usado por SimuladorWindow y para importar/exportar bacterias
         return self.__bacterias
 
     def get_ambiente(self):
-        # Interacción: Usado por SimuladorWindow para graficar la grilla
+        # Usado por SimuladorWindow para graficar la grilla
         return self.__ambiente
 
-    def agregar_bacteria(self, tipo="Espiroqueta", fila=None, columna=None):
-        # Interacción: Llamado por SimuladorWindow y al importar CSV
-        # Colonia crea instancias de Bacteria/Espiroqueta/Estreptococo aquí
+    def agregar_bacteria(self, tipo="Estreptococo", fila=None, columna=None):
+        # Llamado por SimuladorWindow y al importar CSV
+        # Colonia crea instancias de Espiroqueta/Estreptococo aquí
         if tipo == "Espiroqueta":
             bacteria = Espiroqueta()
         elif tipo == "Estreptococo":
@@ -46,7 +45,7 @@ class Colonia():
         return False
 
     def paso(self):
-        # Interacción: Llamado por SimuladorWindow para avanzar la simulación
+        # Llamado por SimuladorWindow para avanzar la simulación
         # Ejecuta un paso de simulación usando objetos Bacteria
         matriz_consumo = [[0 for _ in range(self.__columnas)] for _ in range(self.__filas)]
         nuevas_bacterias = []
@@ -92,7 +91,7 @@ class Colonia():
         self.__bacterias.extend(nuevas_bacterias)
 
     def reporte_estado(self):
-        # Interacción: Llamado por SimuladorWindow para mostrar el estado actual
+        # Llamado por SimuladorWindow para mostrar el estado actual
         # Muestra el estado general de la colonia.
         # Se determinan variables para almacenar la informacion sobre bacterias, vivas, muertas o resistentes
         vivas = 0
@@ -111,7 +110,7 @@ class Colonia():
         return vivas, muertas, resistentes
     
     def exportar_csv(self, nombre="colonia_estado.csv"):
-        # Interacción: Llamado por SimuladorWindow para exportar el estado de la colonia
+        # Llamado por SimuladorWindow para exportar el estado de la colonia
         data = [{
             "ID": b.get_id(),
             "Raza": b.get_raza(),

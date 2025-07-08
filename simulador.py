@@ -88,7 +88,7 @@ class SimuladorWindow(Gtk.ApplicationWindow):
                 if not file:
                     return
                 path = file.get_path()
-                self.colonia = Colonia(filas=10, columnas=10)
+                self.colonia = Colonia(filas=10, columnas=10) #Se crea un ambiente del tipo Colonia, para almacenar las bacterias importadas
                 try:
                     df = pd.read_csv(path, encoding='utf-8')
                 except:
@@ -105,7 +105,7 @@ class SimuladorWindow(Gtk.ApplicationWindow):
                         'resistente': str(row.get('resistente', 'No')).strip().lower() == 'si'
                     }
                     if self.colonia.agregar_bacteria(tipo=datos['raza']):
-                        b = self.colonia.get_bacterias()[-1]  # 
+                        b = self.colonia.get_bacterias()[-1]  
                         b.set_id(datos['id'])
                         b.set_raza(datos['raza'])
                         b.set_energia(datos['energia'])
@@ -161,7 +161,7 @@ class SimuladorWindow(Gtk.ApplicationWindow):
             self.entrada_pasos.set_placeholder_text("Ingresa un número válido (>0)")
             return
         self.pasos_realizados = 0
-        self.colonia = Colonia(filas=10, columnas=10)  # Se crea una nueva colonia (Colonia)
+        self.colonia = Colonia(filas=10, columnas=10)  # Se crea un ambiente a traves del cual se gestionará la simulación (Colonia) AQUI SE CREA POR PRIMERA VEZ ANTES DE IMPORTAR EL CSV 
         for _ in range(3):
             self.colonia.agregar_bacteria()  # Se agregan bacterias a la colonia (Colonia.agregar_bacteria)
         self.boton_siguiente.set_sensitive(True)
@@ -184,6 +184,8 @@ class SimuladorWindow(Gtk.ApplicationWindow):
         else:
             self.boton_siguiente.set_label("Simulación terminada")
             self.boton_siguiente.set_sensitive(False)
+            self.boton_siguiente.set_can_focus(False)  
+            self.boton_siguiente.set_receives_default(False)  
 
     def contar_vivas_resistentes(self):
         vivas, _, resistentes = self.colonia.reporte_estado()  #Obtiene el estado de la colonia (Colonia.reporte_estado)
