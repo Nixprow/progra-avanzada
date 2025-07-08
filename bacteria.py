@@ -1,12 +1,13 @@
 import random
 
-class Bacteria ():
+class Bacteria():
     def __init__ (self):
         self.__id= f"A{random.randint(1000,5000)}" #String random
-        self.__raza= random.choice(["Espiroquetas","Estreptococos"]) #String random
+        self.__raza= random.choice(["Espiroquetas","Estreptococo"]) #String random (tratar de aplicar herencia)
         self.__energia= 50 #Entero
         self.__resistente= False #Booleano que luego cumplirá con ser true or false
         self.__estado= True #Booleano que determina el estado de vida de la bacteria siendo "True"= vivo y "False" = muerto
+        # Instanciada por Colonia.agregar_bacteria (colonia.py)
     #Funciones para trabajar con el id o "Nombre" de la bacteria
     def get_id(self):
         return self.__id
@@ -73,6 +74,7 @@ class Bacteria ():
             raise TypeError("El tipo de dato no corresponde a un booleano")
     #Metodos 
     def alimentar(self,cantidad):
+        # Llamado por Colonia.paso (colonia.py)
         if self.__estado:
             if isinstance(cantidad, int) and cantidad > 0: #Aqui se analiza primero, que cantidad sea entero y luego que la cantidad sea mayor a 0 para alimentar a la bacter
                 self.__energia += cantidad
@@ -81,6 +83,7 @@ class Bacteria ():
     
     
     def dividirse(self):
+        # Llamado por Colonia.paso (colonia.py)
         if self.__estado and self.__energia >= 80:
             hija=Bacteria()
             hija.set_id(self.__id + "_hija")
@@ -94,19 +97,33 @@ class Bacteria ():
             if random.random() < 0.05:
                 hija.mutar()
             return hija
-        return None #Se retorna a nada por que ya se hizo la division celular 
+        return None #En caso de que no haya energia suficiente se retorna None, para que no se cree una bacteria hija
     def mutar(self):
+        # Llamado por Bacteria.dividirse (bacteria.py)
         if self.__estado:
             self.__resistente = True #Aqui se hace cambio del estado resistente original de la bacteria que se encontraba en falso por True para que la bacteria pueda presentar una resistencia a los antibioticos o tal vez a otros factores
             print(f"{self.__id} mutó y ahora es resistente")
     #(Nota, añadir funcion para que mueran con baja energia)
     def morir(self):
+        # Llamado por Ambiente.aplicar_ambiente (ambiente.py)
         if self.__estado:
             self.__estado = False # Se hace cambio de self.estado, pasa de True (vivo) a False (Muerto)
             self.__energia = 0
             print (f"{self.__id} ha muerto :c ") 
     
                 
+class Espiroqueta(Bacteria):
+    def __init__(self):
+        super().__init__()
+        self.__raza = "Espiroqueta"  # Instanciada por Colonia.agregar_bacteria (colonia.py)
+        self.__energia = 70
+        self.__resistente = True
+        
+class Estreptococo(Bacteria):
+    def __init__(self):
+        super().__init__()
+        self.__raza = "Estreptococo"  # Instanciada por Colonia.agregar_bacteria (colonia.py)
+        self.__energia = 80
             
                 
     

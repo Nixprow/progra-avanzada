@@ -8,8 +8,7 @@ from matplotlib.patches import Patch
 import numpy as np
 import pandas as pd
 from colonia import Colonia
-from bacteria import Bacteria
-import random
+
 
 class SimuladorWindow(Gtk.ApplicationWindow):
     def __init__(self, app):
@@ -17,7 +16,7 @@ class SimuladorWindow(Gtk.ApplicationWindow):
         self.set_title("Simulador Bacteriano")
         self.set_default_size(750, 800)
 
-        self.colonia = None
+        self.colonia = None  # Aqui se crea la variable vacia de self.colonia, la cual se iniciará como none
         self.pasos_realizados = 0
         self.pasos_maximos = 0
 
@@ -79,86 +78,48 @@ class SimuladorWindow(Gtk.ApplicationWindow):
         self.historial_vivas = []
         self.historial_resistentes = []
     def on_importar_csv(self, button):
+        # Importa bacterias desde un archivo CSV
         file_dialog = Gtk.FileDialog.new()
         file_dialog.set_title("Selecciona un archivo CSV")
 
         def on_response(dialog_ref, result):
             try:
                 file = dialog_ref.open_finish(result)
-                if file:
-                    path = file.get_path()
-                    
-                    
-                    self.colonia = Colonia(filas=10, columnas=10)
-                    try:
-                        df = pd.read_csv(path, encoding='utf-8')
-                    except UnicodeDecodeError:
-                        df = pd.read_csv(path, encoding='latin-1')
-                    except Exception as e:
-                        self.mostrar_mensaje(f"Error al leer el CSV: {e}")
-                        return
-                    columnas = [c.strip().lower() for c in df.columns]
-                    df.columns = columnas
-                    self.colonia.get_bacterias().clear()
-                    grilla = self.colonia.get_ambiente().get_grilla()
-                    
-                    for i, row in df.iterrows():
-                        b = Bacteria()
-                        b.set_id(str(row.get('id', f"B{i}")))
-                        b.set_raza(str(row.get('raza', 'Desconocida')))
-                        try:
-                            b.set_energia(int(row.get('energía', 50)))
-                        except Exception:
-                            b.set_energia(50)
-                        b.set_estado(str(row.get('estado', 'Viva')).strip().lower() == 'viva')
-                        b.set_resistente(str(row.get('resistente', 'No')).strip().lower() == 'si')
-                        # Buscar una celda vacía aleatoria
-                        vacias = [(x, y) for x in range(len(grilla)) for y in range(len(grilla[0])) if grilla[x][y] == 0]
-                        if vacias:
-                            x, y = random.choice(vacias)
-                            self.colonia.agregar_bacteria(b, x, y)
-                    self.pasos_realizados = 0
-                    self.pasos_maximos = 0
-                    self.boton_siguiente.set_sensitive(True)
-                    self.canvas.set_visible(True)
-                    self.actualizar_grilla()
+                if not file:
+                    return
+                path = file.get_path()
+                self.colonia = Colonia(filas=10, columnas=10)
+                try:
+                    df = pd.read_csv(path, encoding='utf-8')
+                except:
+                    df = pd.read_csv(path, encoding='latin-1')
+                df.columns = [c.strip().lower() for c in df.columns]
+                self.colonia.get_bacterias().clear()
+                for i, row in df.iterrows():
+                    # Aquí se crea y configura cada bacteria en la colonia (Colonia.agregar_bacteria y métodos de Bacteria)
+                    datos = {
+                        'id': str(row.get('id', f"B{i}")),
+                        'raza': str(row.get('raza', 'Espiroqueta')),
+                        'energia': int(row.get('energía', 50)) if str(row.get('energía', 50)).isdigit() else 50,
+                        'estado': str(row.get('estado', 'Viva')).strip().lower() == 'viva',
+                        'resistente': str(row.get('resistente', 'No')).strip().lower() == 'si'
+                    }
+                    if self.colonia.agregar_bacteria(tipo=datos['raza']):
+                        b = self.colonia.get_bacterias()[-1]  # 
+                        b.set_id(datos['id'])
+                        b.set_raza(datos['raza'])
+                        b.set_energia(datos['energia'])
+                        b.set_estado(datos['estado'])
+                        b.set_resistente(datos['resistente'])
+                self.pasos_realizados = 0
+                self.pasos_maximos = 0
+                self.boton_siguiente.set_sensitive(True)
+                self.canvas.set_visible(True)
+                self.actualizar_grilla()
             except Exception as e:
-                self.mostrar_mensaje(f"Error al abrir archivo: {e}")
+                print(f"Error al abrir archivo: {e}")
 
         file_dialog.open(self.get_root(), None, on_response)
-
-    def importar_csv(self, filename):
-        self.colonia = Colonia(filas=10, columnas=10)
-        try:
-            df = pd.read_csv(filename, encoding='utf-8')
-        except UnicodeDecodeError:
-            df = pd.read_csv(filename, encoding='latin-1')
-        except Exception as e:
-            self.mostrar_mensaje(f"Error al leer el CSV: {e}")
-            return
-        columnas = [c.strip().lower() for c in df.columns]
-        df.columns = columnas
-        grilla = self.colonia.get_ambiente().get_grilla()
-        for i, row in df.iterrows():
-            b = Bacteria()
-            b.set_id(str(row.get('id', f"B{i}")))
-            b.set_raza(str(row.get('raza', 'Desconocida')))
-            try:
-                b.set_energia(int(row.get('energía', 50)))
-            except Exception:
-                b.set_energia(50)
-            b.set_estado(str(row.get('estado', 'Viva')).strip().lower() == 'viva')
-            b.set_resistente(str(row.get('resistente', 'No')).strip().lower() == 'si')
-            # Buscar una celda vacía aleatoria
-            vacias = [(x, y) for x in range(len(grilla)) for y in range(len(grilla[0])) if grilla[x][y] == 0]
-            if vacias:
-                x, y = random.choice(vacias)
-                self.colonia.agregar_bacteria(b, x, y)
-        self.pasos_realizados = 0
-        self.pasos_maximos = 0
-        self.boton_siguiente.set_sensitive(True)
-        self.canvas.set_visible(True)
-        self.actualizar_grilla()
 
     def mostrar_grafico_en_ventana(self, fig, titulo="Gráfico"):
         win = Gtk.Window(title=titulo)
@@ -168,11 +129,6 @@ class SimuladorWindow(Gtk.ApplicationWindow):
         win.present()
 
     def on_graficar_resistencia(self, button):
-        try:
-            df = pd.read_csv("colonia_estado.csv", encoding="utf-8")
-        except Exception:
-            self.mostrar_mensaje("No se pudo leer el archivo colonia_estado.csv")
-            return
         pasos = list(range(1, len(self.historial_resistentes)+1))
         fig, ax = plt.subplots()
         ax.plot(pasos, self.historial_resistentes, label="Resistentes (en simulación)")
@@ -183,11 +139,6 @@ class SimuladorWindow(Gtk.ApplicationWindow):
         self.mostrar_grafico_en_ventana(fig, "Resistencia")
 
     def on_graficar_crecimiento(self, button):
-        try:
-            df = pd.read_csv("colonia_estado.csv", encoding="utf-8")
-        except Exception:
-            self.mostrar_mensaje("No se pudo leer el archivo colonia_estado.csv")
-            return
         pasos = list(range(1, len(self.historial_vivas)+1))
         fig, ax = plt.subplots()
         ax.plot(pasos, self.historial_vivas, label="Vivas (en simulación)")
@@ -197,65 +148,57 @@ class SimuladorWindow(Gtk.ApplicationWindow):
         ax.legend()
         self.mostrar_grafico_en_ventana(fig, "Crecimiento")
 
-    def on_iniciar_simulacion(self, button):
+    def on_iniciar_simulacion(self, _):
+        # Inicia la simulación con 3 bacterias
         try:
             self.pasos_maximos = int(self.entrada_pasos.get_text())
-            if self.pasos_maximos <= 0:
-                raise ValueError
-        except ValueError:
+        except:
             self.entrada_pasos.set_text("")
             self.entrada_pasos.set_placeholder_text("Ingresa un número válido (>0)")
             return
-        
+        if self.pasos_maximos <= 0:
+            self.entrada_pasos.set_text("")
+            self.entrada_pasos.set_placeholder_text("Ingresa un número válido (>0)")
+            return
         self.pasos_realizados = 0
-        self.colonia = Colonia(filas=10, columnas=10)
-        # Colocar 3 bacterias iniciales en posiciones aleatorias y distintas
-        grilla = self.colonia.get_ambiente().get_grilla()
+        self.colonia = Colonia(filas=10, columnas=10)  # Se crea una nueva colonia (Colonia)
         for _ in range(3):
-            vacias = [(x, y) for x in range(len(grilla)) for y in range(len(grilla[0])) if grilla[x][y] == 0]
-            if not vacias:
-                break
-            fila, col = random.choice(vacias)
-            b = Bacteria()
-            self.colonia.agregar_bacteria(b, fila, col)
-
+            self.colonia.agregar_bacteria()  # Se agregan bacterias a la colonia (Colonia.agregar_bacteria)
         self.boton_siguiente.set_sensitive(True)
         self.canvas.set_visible(True)
         self.actualizar_grilla()
 
-    def on_siguiente_paso(self, button):
+    def on_siguiente_paso(self, _):
+        # Avanza un paso en la simulación
         if self.pasos_realizados < self.pasos_maximos or self.pasos_maximos == 0:
-            self.colonia.paso()
+            self.colonia.paso()  # Avanza la simulación (Colonia.paso)
             self.pasos_realizados += 1
-            # Guardar historial para graficar
             vivas, resistentes = self.contar_vivas_resistentes()
             self.historial_vivas.append(vivas)
             self.historial_resistentes.append(resistentes)
-            # Exportar CSV automáticamente
             try:
-                self.colonia.exportar_csv("colonia_estado.csv")
-            except Exception as e:
-                print(f"Error exportando CSV: {e}")
+                self.colonia.exportar_csv("colonia_estado.csv")  # Exporta el estado de la colonia (Colonia.exportar_csv)
+            except:
+                pass
             self.actualizar_grilla()
         else:
             self.boton_siguiente.set_label("Simulación terminada")
             self.boton_siguiente.set_sensitive(False)
 
     def contar_vivas_resistentes(self):
-        vivas, _, resistentes = self.colonia.reporte_estado()
+        vivas, _, resistentes = self.colonia.reporte_estado()  #Obtiene el estado de la colonia (Colonia.reporte_estado)
         return vivas, resistentes
 
     def actualizar_grilla(self):
         self.ax.clear()  # Sobreescribe lo anterior
 
-        grilla = np.array(self.colonia.get_ambiente().get_grilla())
+        grilla = np.array(self.colonia.get_ambiente().get_grilla())  # Obtiene la grilla del ambiente (Colonia.get_ambiente, Ambiente.get_grilla)
         # Asegura que los valores estén en el rango 0-4 y sean enteros
         grilla = grilla.astype(int)
-        # Colores: 0=Vacío, 1=Activa, 2=Muerta, 3=Resistente, 4=Biofilm
+        # Colores: 0=Vacío, 1=Activa, 2=Muerta, 3=Resistente
         colores = ["#e41a1c", "#4daf4a", "#ffed6f", "#ff7f00", "#bdbdbd"]  # 0-4
         cmap = ListedColormap(colores)
 
-        # Para evitar que matplotlib asigne el color "incorrecto" a los valores fuera de rango
         self.ax.imshow(grilla, cmap=cmap, vmin=0, vmax=4)
 
         colores = [
@@ -270,7 +213,6 @@ class SimuladorWindow(Gtk.ApplicationWindow):
             for j in range(grilla.shape[1]):
                 val = grilla[i, j]
                 if val > 0:
-                    # Elige color de texto según fondo para mejor contraste
                     text_color = 'black' if val in [2, 4] else 'white'
                     self.ax.text(j, i, int(val), va='center', ha='center', color=text_color, fontsize=10, fontweight='bold')
 
@@ -283,7 +225,7 @@ class SimuladorWindow(Gtk.ApplicationWindow):
         self.ax.set_title(f"Paso {self.pasos_realizados} / {self.pasos_maximos}")
 
         self.figure.tight_layout()
-        self.canvas.queue_draw()  #  fuerza actualización visual
+        self.canvas.queue_draw()  #  Fuerza actualización visual
     def do_close_request(self):
         app = self.get_application()
         if app:
@@ -300,8 +242,4 @@ class SimuladorApp(Gtk.Application):
         win = SimuladorWindow(self)
         win.present()
 
-    def do_window_removed(self, window):
-        # Si no quedan ventanas, salir de la app
-        if not self.get_windows():
-            self.quit()
 
