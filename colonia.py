@@ -62,7 +62,7 @@ class Colonia():
                 continue
             if bacteria.es_resistente():
                 self.__ambiente.set_grilla_valor(x, y, 3)
-            if bacteria.get_energia() >= 80:
+            if bacteria.get_energia() >= 70:
                 hija = bacteria.dividirse()
                 if hija is not None:
                     # Buscar vecinos 

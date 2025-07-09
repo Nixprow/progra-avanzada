@@ -21,14 +21,13 @@ class Ambiente(MatrizAmbiente):
         self.__nutrientes = self.crear_matriz(nutrientes_iniciales)
         self.__factor_ambiental= self.crear_matriz_func(lambda: random.random() < prob_antibiotico)
         
-       
-
     # -Métodos
     def get_grilla(self):
         # Llamado por Colonia y SimuladorWindow para obtener el estado de la grilla
         return self.__grilla
     
     #La variable valor equivale al numero asignado segun el estado de la bacteria misma
+    # 0 Vacia, 1 Viva ,2 Muerta, 3 Resistente
     def set_grilla_valor(self, x, y, valor):
         # Llamado por Colonia para actualizar el estado de la grilla
         if 0 <= x < self._filas and 0 <= y < self._columnas:

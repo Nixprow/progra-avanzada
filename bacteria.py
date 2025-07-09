@@ -125,13 +125,13 @@ class Estreptococo(Bacteria):
         self.__raza = "Estreptococo"  # Instanciada por Colonia.agregar_bacteria (colonia.py)
         self.__energia = 80
         
-    def alimentar(self,cantidad):
-        # Llamado por Colonia.paso (colonia.py)
-        if self.__estado:
-            if isinstance(cantidad, int) and cantidad > 0: #Aqui se analiza primero, que cantidad sea entero y luego que la cantidad sea mayor a 0 para alimentar a la bacter
-                self.__energia += cantidad * 1.5
-            else: 
-                print("Cantidad insuficiente de nutrientes") #En caso de que no sea mayor a 0 arrojará que hay una cantidad insuficiente de nutrientes
-            
-                
-    
+
+    def alimentar(self, cantidad):
+        gramplus= random.randint(0,20) #Ya que estas bacterias son gram positivas, se les añade un plus de energia al alimentarse
+        #Estreptococo multiplica la cantidad por 2
+        if self.esta_vivo():
+            if isinstance(cantidad, int) and cantidad > 0:
+                self._Bacteria__energia += cantidad + gramplus
+            else:
+                print("Cantidad insuficiente de nutrientes o tipo incorrecto (debe ser entero positivo)")
+        

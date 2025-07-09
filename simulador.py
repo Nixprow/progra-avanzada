@@ -98,9 +98,9 @@ class SimuladorWindow(Gtk.ApplicationWindow):
                 for i, row in df.iterrows():
                     # Aquí se crea y configura cada bacteria en la colonia (Colonia.agregar_bacteria y métodos de Bacteria)
                     datos = {
-                        'id': str(row.get('id', f"B{i}")),
-                        'raza': str(row.get('raza', 'Espiroqueta')),
-                        'energia': int(row.get('energía', 50)) if str(row.get('energía', 50)).isdigit() else 50,
+                        'id': str(row.get('id', f"A{i}")),
+                        'raza': str(row.get('raza', 'No especificada')).strip(),
+                        'energia': int(row.get('energía', 70)) if str(row.get('energía', 70)).isdigit() else 70,
                         'estado': str(row.get('estado', 'Viva')).strip().lower() == 'viva',
                         'resistente': str(row.get('resistente', 'No')).strip().lower() == 'si'
                     }
@@ -163,7 +163,7 @@ class SimuladorWindow(Gtk.ApplicationWindow):
         self.pasos_realizados = 0
         self.colonia = Colonia(filas=10, columnas=10)  # Se crea un ambiente a traves del cual se gestionará la simulación (Colonia) AQUI SE CREA POR PRIMERA VEZ ANTES DE IMPORTAR EL CSV 
         for _ in range(3):
-            self.colonia.agregar_bacteria()  # Se agregan bacterias a la colonia (Colonia.agregar_bacteria)
+            self.colonia.agregar_bacteria()  #  (Colonia.agregar_bacteria)
         self.boton_siguiente.set_sensitive(True)
         self.canvas.set_visible(True)
         self.actualizar_grilla()
@@ -198,7 +198,7 @@ class SimuladorWindow(Gtk.ApplicationWindow):
         # Asegura que los valores estén en el rango 0-4 y sean enteros
         grilla = grilla.astype(int)
         # Colores: 0=Vacío, 1=Activa, 2=Muerta, 3=Resistente
-        colores = ["#e41a1c", "#4daf4a", "#ffed6f", "#ff7f00", "#bdbdbd"]  # 0-4
+        colores = ["#e41a1c", "#4daf4a", "#ffed6f", "#ff7f00"]  # 0-4
         cmap = ListedColormap(colores)
 
         self.ax.imshow(grilla, cmap=cmap, vmin=0, vmax=4)
